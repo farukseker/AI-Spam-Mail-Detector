@@ -89,11 +89,9 @@ def analyze_emails(email, model_name):
         return {"title": email["subject"], "status": f"Error: {e}"}
 
 
-# Streamlit arayüzü
 def main():
     st.title("Email Spam Classifier")
 
-    # Ollama kontrolü
     st.subheader("Ollama Check")
     ollama_installed, ollama_data = check_ollama()
     if not ollama_installed:
@@ -101,7 +99,6 @@ def main():
         return
     st.success("Ollama is installed.")
 
-    # Model seçimi
     st.subheader("Select LLM Model")
     last_model = load_last_model()
     models = ollama_data
@@ -109,7 +106,7 @@ def main():
                                   index=models.index(last_model) if last_model in models else 0)
     if selected_model:
         print(selected_model)
-        # save_last_model(selected_model)
+        save_last_model(selected_model)
 
     # SMTP giriş bilgileri
     st.subheader("SMTP Login")
