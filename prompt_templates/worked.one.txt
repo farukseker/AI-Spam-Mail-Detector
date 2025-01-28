@@ -1,8 +1,8 @@
-"""Analyze the following email text and determine if it is spam or not.
-    Return the result strictly in JSON format. The JSON object should have the following fields:
-    - is_spam (True/False): Whether the email is spam or not.
-    - sentiment (string): Sentiment of the email (positive, negative, or neutral).
-    - themes (list of strings): Key themes or aspects discussed in the email.
+Analyze the following email text and determine if it is spam or not.
+Return the result strictly in JSON format. The JSON object should have the following fields:
+- is_spam (True/False): Whether the email is spam or not.
+- sentiment (string): Sentiment of the email (positive, negative, or neutral).
+- themes (list of strings): Key themes or aspects discussed in the email.
 
-    Email text: {email_text}
-    JSON response:"""
+Email text: {email_text}
+JSON response:

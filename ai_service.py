@@ -13,14 +13,14 @@ class EmailAnalysis(BaseModel):
 
 
 class LocalLLM:
-    def __init__(self, selected_template: str):
+    def __init__(self):
         self.parser: PydanticOutputParser = PydanticOutputParser(pydantic_object=EmailAnalysis)
-        self.selected_template: str = selected_template
+        self.__selected_template: str | None = 'prompt_templates/worked.two.txt'
         self.__selected_model: str | None = None
 
     @property
     def _prompt_template_text(self) -> str:
-        with open(self.selected_template, 'r', encoding='utf-8') as df:
+        with open(self.__selected_template, 'r', encoding='utf-8') as df:
             return df.read()
 
     @property
@@ -61,28 +61,4 @@ class LocalLLM:
         response = self.chain.invoke({"email_text": email})
         print(response)
 
-
-from email_service import EmailFetcher
-from config import TEST_USERNAME, TEST_PASSWORD
-
-
-email_fetcher: EmailFetcher = EmailFetcher(TEST_USERNAME, TEST_PASSWORD)
-
-try:
-    email_fetcher.connect()
-
-    llm = LocalLLM(selected_template='prompt_templates/worked.two.txt')
-    if llms := llm.list_llm():
-        print(llms)
-
-    llm.selected_model = llms[1]
-    print('mail')
-
-    for mail in email_fetcher.fetch_emails(10):
-        print(mail.subject)
-        llm.analyze_mail(email=mail.body)
-except Exception as e:
-    print(f'ERROR: {str(e)}')
-finally:
-    email_fetcher.disconnect()
 
