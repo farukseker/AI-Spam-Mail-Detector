@@ -44,6 +44,7 @@ from email.header import decode_header
 from config import TEST_PASSWORD, TEST_USERNAME
 from bs4 import BeautifulSoup
 import re
+from performance import get_performance_metric
 
 
 def clean_text(text):
@@ -59,7 +60,7 @@ def clean_text(text):
     return text
 
 
-def fetch_emails(email_user, email_pass, limit=10):
+def fetch_emails(email_user, email_pass, limit=100):
     try:
         # Gmail IMAP sunucusuna bağlan
         mail = imaplib.IMAP4_SSL("imap.gmail.com")
@@ -120,7 +121,8 @@ def fetch_emails(email_user, email_pass, limit=10):
 class EmailAnalysis(BaseModel):
     is_spam: bool
     sentiment: str
-    themes: list[str]
+    themes: list[str] | str
+    is_important: bool
 
 
 # JsonOutputParser
@@ -128,35 +130,90 @@ parser = PydanticOutputParser(pydantic_object=EmailAnalysis)
 
 # Prompt template with stricter JSON instructions
 prompt_template = PromptTemplate(
-    template="""Analyze the following email text and determine if it is spam or not.
-    Return the result strictly in JSON format. The JSON object should have the following fields:
-    - is_spam (True/False): Whether the email is spam or not.
-    - sentiment (string): Sentiment of the email (positive, negative, or neutral).
-    - themes (list of strings): Key themes or aspects discussed in the email.
+    template="""Analyze the following email text and determine the following:
+    1. Is the email spam or not?
+    2. What is the sentiment of the email (positive, negative, or neutral)?
+    3. What are the key themes or aspects discussed in the email?
+    4. Should this email be considered important and worth attention?
+
+    You must return the result strictly as a valid JSON object. No extra text, comments, or explanations should be included.
+    If the output is not in valid JSON format, the response will be considered invalid.
+
+    The JSON object must strictly follow this structure:
+    {{
+        "is_spam": true or false,
+        "sentiment": "positive" or "negative" or "neutral",
+        "themes": ["theme1", "theme2", ...],
+        "is_important": true or false
+    }}
 
     Email text: {email_text}
     JSON response:""",
     input_variables=["email_text"],
 )
 
+
+models: dict[int, str] = {
+    0: 'llama3.2:1b',
+    1: 'llama3.2:3b',  # ok
+    2: 'benevolentjoker/nsfwvanessa:latest',
+    3: 'llama3.2-vision:11b',
+    4: 'deepseek-coder-v2:latest',
+    5: 'llava:latest',
+    6: 'llama3.1:latest',
+    7: 'deepseek-r1:1.5b'  # ok
+}
+
+selected_model: str = models[0]
 # Ollama Client and model
 client = Client()
 # llm = OllamaLLM(client=client, model="llama3.1:latest")
 # llm = OllamaLLM(client=client, model="llama3.2:3b")
-llm = OllamaLLM(client=client, model="deepseek-r1:1.5b")
-
+llm = OllamaLLM(client=client, model=selected_model)
+mail_count: int = 40
 # Chain integration
 chain = prompt_template | llm | parser
 
-emails = fetch_emails(TEST_USERNAME, TEST_PASSWORD, limit=20)
-if isinstance(emails, str):  # Hata kontrolü
-    print(f"Error fetching emails: {emails}")
 
-for email in emails:
-    # print(email)
-    try:
-        # Spam analysis
-        response = chain.invoke({"email_text": email.get('body')})
-        print(response)
-    except Exception as e:
-        print(f"Error: {e}")
+@get_performance_metric
+def task() -> None:
+    emails = fetch_emails(TEST_USERNAME, TEST_PASSWORD, limit=mail_count)
+    if isinstance(emails, str):  # Hata kontrolü
+        print(f"Error fetching emails: {emails}")
+
+    spam_counter: int = 0
+    error_counter: int = 0
+    for email in emails:
+        # print(email)
+        try:
+            # Spam analysis
+            # print(email.get('subject'))
+            response = chain.invoke({"email_text": email.get('body')})
+            # print(response)
+            if response.is_spam:
+                spam_counter += 1
+            print(f'id({email.get('id')}) - "{email.get('subject')} | {'SPAM' if response.is_spam else 'CLEAN'} | {'IMP' if response.is_important else 'NOT'}"')
+        except Exception as e:
+            error_counter += 1
+            print(f'ERROR: id({email.get('id')}) - "{email.get('subject')}')
+            with open('parssed.error.log', 'a+', encoding='utf-8') as df:
+                df.write(str(e))
+    print(f"""
+        {selected_model} -> spam sayısı: {spam_counter},
+        model: {selected_model},
+        error: {error_counter},
+        mail count: {mail_count}"""
+    )
+
+
+if __name__ == '__main__':
+    task()
+
+
+'''
+"id": mail_id.decode(),
+"subject": subject,
+"from": from_,
+"body": body.strip(),
+"urls": urls
+'''

@@ -2,3 +2,32 @@
  71 sec with | llama3.2:1b
 345 sec with | llama3.1:latest
 
+deepseek-r1:1.5b -> spam sayısı: 4, model: deepseek-r1:1.5b, error: 18, mail count: 40
+conflict deepseek-r1:1.5b
+id(6376) - "Ebonivon just went live on Kick! | SPAM"
+id(6377) - "Ebonivon just went live on Kick! | CLEAN"
+
+
+llama3.2:3b -> spam sayısı: 15,
+model: llama3.2:3b,
+error: 8,
+mail count: 40
+PROCESS TIME: 356.89 SECONDS | FUNC NAME: (TASK) | MEMORY USED: 14.36 MB
+
+conflict llama3.2:3b - prompt.one.txt
+id(6400) - "⏳Time’s running out! Get 50% off Slack Pro | CLEAN"
+id(6401) - "⏳Time’s running out! Get 50% off Slack Pro | SPAM"
+
+
+llama3.2:3b -> spam sayısı: 20, prompt.two.txt
+model: llama3.2:3b,
+error: 8,
+mail count: 40
+PROCESS TIME: 390.44 SECONDS | FUNC NAME: (TASK) | MEMORY USED: 14.15 MB
+
+
+llama3.2:1b -> spam sayısı: 0, prompt.two.txt
+model: llama3.2:1b,
+error: 11,
+mail count: 40
+PROCESS TIME: 152.23 SECONDS | FUNC NAME: (TASK) | MEMORY USED: 14.37 MB

@@ -1,0 +1,19 @@
+"""Analyze the following email text and determine the following:
+    1. Is the email spam or not?
+    2. What is the sentiment of the email (positive, negative, or neutral)?
+    3. What are the key themes or aspects discussed in the email?
+    4. Should this email be considered important and worth attention?
+
+    You must return the result strictly as a valid JSON object. No extra text, comments, or explanations should be included.
+    If the output is not in valid JSON format, the response will be considered invalid.
+
+    The JSON object must strictly follow this structure:
+    {{
+        "is_spam": true or false,
+        "sentiment": "positive" or "negative" or "neutral",
+        "themes": ["theme1", "theme2", ...],
+        "is_important": true or false
+    }}
+
+    Email text: {email_text}
+    JSON response:"""
