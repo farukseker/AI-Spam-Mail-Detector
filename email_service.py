@@ -4,6 +4,10 @@ from email.header import decode_header
 from bs4 import BeautifulSoup
 import re
 from dataclasses import dataclass
+from log4py import LoggerManager
+
+
+logger = LoggerManager.get_logger('EmailFetcher')
 
 
 def clean_text(text) -> str:
@@ -36,10 +40,12 @@ class EmailFetcher:
             self.server = imaplib.IMAP4_SSL("imap.gmail.com")
             self.server.login(self.email_user, self.email_pass)
         except Exception as e:
+            logger.error(e)
             raise ConnectionError(f"Failed to connect to the email server: {e}")
 
     def get_mail_boxs(self) -> list[dict]:
         if not self.server:
+            logger.error("Not connected to the email server.")
             raise ConnectionError("Not connected to the email server.")
 
         status, folders = self.server.list()
@@ -50,6 +56,7 @@ class EmailFetcher:
 
     def fetch_emails(self, limit=100) -> list[MailType]:
         if not self.server:
+            logger.error('Not connected to the email server.')
             raise ConnectionError("Not connected to the email server.")
         try:
             self.server.select("inbox")

@@ -3,6 +3,10 @@ from langchain_ollama.chat_models import Client
 from langchain.prompts import PromptTemplate
 from langchain.output_parsers import PydanticOutputParser
 from pydantic import BaseModel
+from log4py import LoggerManager
+
+
+logger = LoggerManager.get_logger('AI_Service')
 
 
 class EmailAnalysis(BaseModel):
@@ -36,7 +40,7 @@ class LocalLLM:
             model_list = self.client.list()
             return [n.model for n in [model[1] for model in model_list][0]]
         except Exception as e:
-            # log ekle
+            logger.error('llm listing', str(e))
             return None
 
     @property
@@ -48,11 +52,13 @@ class LocalLLM:
         if _llm in self.list_llm():
             self.__selected_model = _llm
         else:
+            logger.error("The selected llm model is does not in LocalLLM's list")
             raise ValueError("The selected llm model is does not in LocalLLM's list")
 
     @property
     def chain(self):
         if self.__selected_model is None:
+            logger.error('The selected_model is does not None')
             raise ValueError('The selected_model is does not None')
 
         return self.load_prompt_template | OllamaLLM(client=self.client, model=self.selected_model) | self.parser
@@ -61,7 +67,8 @@ class LocalLLM:
         try:
             return self.chain.invoke({"email_text": email})
         except Exception as e:
-            print(e)
+            logger.error(e)
             return None
+            # raise e
 
 
