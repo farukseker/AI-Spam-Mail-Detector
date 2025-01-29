@@ -130,7 +130,6 @@ def main():
 
         # Create a placeholder for the table
         table_placeholder = st.empty()
-
         results = []
 
         for email in emails[:10]:

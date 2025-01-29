@@ -6,10 +6,10 @@ from pydantic import BaseModel
 
 
 class EmailAnalysis(BaseModel):
-    is_spam: bool
-    sentiment: str
-    themes: list[str]
-    is_important: bool
+    is_spam: bool | None = None
+    sentiment: str | None = None
+    themes: list[str] | None = None
+    is_important: bool | None = None
 
 
 class LocalLLM:
@@ -57,8 +57,10 @@ class LocalLLM:
 
         return self.load_prompt_template | OllamaLLM(client=self.client, model=self.selected_model) | self.parser
 
-    def analyze_mail(self, email):
-        response = self.chain.invoke({"email_text": email})
-        print(response)
+    def analyze_mail(self, email) -> EmailAnalysis | None:
+        try:
+            return self.chain.invoke({"email_text": email})
+        except:
+            return None
 
 
