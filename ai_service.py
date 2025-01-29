@@ -60,7 +60,8 @@ class LocalLLM:
     def analyze_mail(self, email) -> EmailAnalysis | None:
         try:
             return self.chain.invoke({"email_text": email})
-        except:
+        except Exception as e:
+            print(e)
             return None
 
 
